@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CRUD Kategori & Produk</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    h2 { margin-top: 2rem; }
+    form { margin-bottom: 1rem; }
+    input, button, select {
+      margin: 5px 0;
+      padding: 0.5rem;
+      width: 100%;
+      max-width: 300px;
+    }
+    ul { list-style: none; padding-left: 0; }
+    li { margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h1>CRUD Kategori & Produk</h1>
+
+  <!-- CATEGORY SECTION -->
+  <h2>Tambah Kategori</h2>
+  <form id="category-form">
+    <input type="text" id="category-name" placeholder="Nama Kategori" required />
+    <button type="submit">Tambah Kategori</button>
+  </form>
+
+  <h3>Daftar Kategori</h3>
+  <ul id="category-list"></ul>
+
+  <!-- PRODUCT SECTION -->
+  <h2>Tambah Produk</h2>
+  <form id="product-form">
+    <input type="text" id="product-name" placeholder="Nama Produk" required />
+    <input type="number" id="product-price" placeholder="Harga Produk" required />
+    <select id="category-select"></select>
+    <button type="submit">Tambah Produk</button>
+  </form>
+
+  <h3>Daftar Produk</h3>
+  <ul id="product-list"></ul>
+
+  <script>
+    const API = "http://localhost:8081";
+
+    async function fetchCategories() {
+      const res = await fetch(`${API}/categories`);
+      const data = await res.json();
+
+      const categoryList = document.getElementById("category-list");
+      const categorySelect = document.getElementById("category-select");
+      categoryList.innerHTML = "";
+      categorySelect.innerHTML = "";
+
+      data.forEach(cat => {
+        const li = document.createElement("li");
+        li.textContent = `${cat.name} (ID: ${cat.id})`;
+        categoryList.appendChild(li);
+
+        const option = document.createElement("option");
+        option.value = cat.id;
+        option.textContent = cat.name;
+        categorySelect.appendChild(option);
+      });
+    }
+
+    async function fetchProducts() {
+      const res = await fetch(`${API}/products`);
+      const data = await res.json();
+
+      const productList = document.getElementById("product-list");
+      productList.innerHTML = "";
+      data.forEach(prod => {
+        const li = document.createElement("li");
+        li.textContent = `${prod.name} - Rp${prod.price.toLocaleString()} (Kategori ID: ${prod.category_id})`;
+        productList.appendChild(li);
+      });
+    }
+
+    document.getElementById("category-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("category-name").value;
+      await fetch(`${API}/categories`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name })
+      });
+      e.target.reset();
+      fetchCategories();
+    });
+
+    document.getElementById("product-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("product-name").value;
+      const price = document.getElementById("product-price").value;
+      const category_id = document.getElementById("category-select").value;
+
+      await fetch(`${API}/products`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, price, category_id })
+      });
+      e.target.reset();
+      fetchProducts();
+    });
+
+    fetchCategories();
+    fetchProducts();
+  </script>
+</body>
+</html>
